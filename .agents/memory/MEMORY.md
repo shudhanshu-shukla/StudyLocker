@@ -1,0 +1,1 @@
+- [StudyLock auth architecture](studylock-auth.md) — Google OAuth via expo-auth-session; requires EXPO_PUBLIC_GOOGLE_CLIENT_ID; graceful fallback when unconfigured.

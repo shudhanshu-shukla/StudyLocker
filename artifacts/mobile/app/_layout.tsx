@@ -22,19 +22,24 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
-  const { studentName, nameLoaded } = useStudy();
+  const { user, isAuthLoading } = useStudy();
 
   useEffect(() => {
-    if (!nameLoaded) return;
-    if (!studentName) {
-      router.replace("/onboarding");
+    if (isAuthLoading) return;
+    if (!user) {
+      router.replace("/login");
+    } else if (!user.setupComplete) {
+      router.replace("/profile-setup");
+    } else {
+      router.replace("/");
     }
-  }, [nameLoaded, studentName]);
+  }, [isAuthLoading, user]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="onboarding" options={{ animation: "fade", gestureEnabled: false }} />
+      <Stack.Screen name="login" options={{ animation: "fade", gestureEnabled: false }} />
+      <Stack.Screen name="profile-setup" options={{ animation: "slide_from_right", gestureEnabled: false }} />
       <Stack.Screen name="setup" options={{ presentation: "card", animation: "slide_from_right" }} />
       <Stack.Screen name="session" options={{ presentation: "fullScreenModal", animation: "fade", gestureEnabled: false }} />
       <Stack.Screen name="complete" options={{ presentation: "fullScreenModal", animation: "fade", gestureEnabled: false }} />

@@ -26,12 +26,38 @@ export interface TodoItem {
   carriedOver: boolean;
 }
 
+export interface AppUser {
+  googleId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string;
+  examCategoryId: string;
+  examCategoryLabel: string;
+  examId: string;
+  examName: string;
+  boardName?: string;
+  className?: string;
+  setupComplete: boolean;
+}
+
+export interface GoogleProfile {
+  googleId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string;
+}
+
 interface StudyContextType {
+  user: AppUser | null;
+  isAuthLoading: boolean;
+  loginWithGoogle: (profile: GoogleProfile) => Promise<void>;
+  updateUserProfile: (profile: Partial<AppUser>) => Promise<void>;
+  logout: () => void;
   sessions: StudySession[];
   allowedApps: AllowedApp[];
   todos: TodoItem[];
-  studentName: string;
-  nameLoaded: boolean;
   addSession: (session: StudySession) => void;
   addAllowedApp: (app: AllowedApp) => void;
   removeAllowedApp: (id: string) => void;
@@ -40,10 +66,12 @@ interface StudyContextType {
   editTodo: (id: string, text: string) => void;
   deleteTodo: (id: string) => void;
   transferTomorrow: (id: string) => void;
-  setStudentName: (name: string) => void;
   todayStudyMinutes: number;
   streak: number;
   weeklyMinutes: number[];
+  // legacy compat
+  studentName: string;
+  nameLoaded: boolean;
 }
 
 const StudyContext = createContext<StudyContextType | null>(null);
@@ -51,7 +79,7 @@ const StudyContext = createContext<StudyContextType | null>(null);
 const SESSIONS_KEY = "studylock_sessions";
 const APPS_KEY = "studylock_apps";
 const TODOS_KEY = "studylock_todos";
-const NAME_KEY = "studylock_name";
+const USER_KEY = "studylock_user";
 
 const DEFAULT_APPS: AllowedApp[] = [
   { id: "1", name: "Calculator", iconName: "calculator", category: "Tools" },
@@ -73,34 +101,94 @@ function persist(key: string, value: unknown) {
   AsyncStorage.setItem(key, JSON.stringify(value)).catch(() => {});
 }
 
+async function syncUserToBackend(user: AppUser): Promise<void> {
+  try {
+    const base = process.env.EXPO_PUBLIC_API_URL ?? "";
+    await fetch(`${base}/api/users/upsert`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        googleId: user.googleId,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatarUrl: user.avatarUrl,
+      }),
+    });
+  } catch {
+    // backend unavailable — local only
+  }
+}
+
+async function updateProfileOnBackend(googleId: string, profile: Partial<AppUser>): Promise<void> {
+  try {
+    const base = process.env.EXPO_PUBLIC_API_URL ?? "";
+    await fetch(`${base}/api/users/${googleId}/profile`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(profile),
+    });
+  } catch {
+    // backend unavailable — local only
+  }
+}
+
 export function StudyProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [allowedApps, setAllowedApps] = useState<AllowedApp[]>(DEFAULT_APPS);
   const [todos, setTodos] = useState<TodoItem[]>([]);
-  const [studentName, setStudentNameState] = useState("");
-  const [nameLoaded, setNameLoaded] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        const [savedSessions, savedApps, savedTodos, savedName] = await Promise.all([
+        const [savedSessions, savedApps, savedTodos, savedUser] = await Promise.all([
           AsyncStorage.getItem(SESSIONS_KEY),
           AsyncStorage.getItem(APPS_KEY),
           AsyncStorage.getItem(TODOS_KEY),
-          AsyncStorage.getItem(NAME_KEY),
+          AsyncStorage.getItem(USER_KEY),
         ]);
         if (savedSessions) setSessions(JSON.parse(savedSessions));
         if (savedApps) setAllowedApps(JSON.parse(savedApps));
         if (savedTodos) setTodos(JSON.parse(savedTodos));
-        if (savedName) setStudentNameState(JSON.parse(savedName));
+        if (savedUser) setUser(JSON.parse(savedUser));
       } catch {}
-      setNameLoaded(true);
+      setIsAuthLoading(false);
     })();
   }, []);
 
-  const setStudentName = useCallback((name: string) => {
-    setStudentNameState(name);
-    AsyncStorage.setItem(NAME_KEY, JSON.stringify(name)).catch(() => {});
+  const loginWithGoogle = useCallback(async (profile: GoogleProfile) => {
+    const newUser: AppUser = {
+      ...profile,
+      examCategoryId: "",
+      examCategoryLabel: "",
+      examId: "",
+      examName: "",
+      setupComplete: false,
+    };
+    setUser(newUser);
+    persist(USER_KEY, newUser);
+    await syncUserToBackend(newUser);
+  }, []);
+
+  const updateUserProfile = useCallback(async (profile: Partial<AppUser>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...profile };
+      persist(USER_KEY, next);
+      return next;
+    });
+    const currentUser = await AsyncStorage.getItem(USER_KEY);
+    if (currentUser) {
+      const parsed: AppUser = JSON.parse(currentUser);
+      await updateProfileOnBackend(parsed.googleId, profile);
+    }
+  }, []);
+
+  const logout = useCallback(() => {
+    setUser(null);
+    AsyncStorage.removeItem(USER_KEY).catch(() => {});
   }, []);
 
   const addSession = useCallback((session: StudySession) => {
@@ -146,7 +234,7 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
 
   const toggleTodo = useCallback((id: string) => {
     setTodos((prev) => {
-      const next = prev.map((t) => t.id === id ? { ...t, completed: !t.completed } : t);
+      const next = prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t));
       persist(TODOS_KEY, next);
       return next;
     });
@@ -154,7 +242,7 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
 
   const editTodo = useCallback((id: string, text: string) => {
     setTodos((prev) => {
-      const next = prev.map((t) => t.id === id ? { ...t, text: text.trim() } : t);
+      const next = prev.map((t) => (t.id === id ? { ...t, text: text.trim() } : t));
       persist(TODOS_KEY, next);
       return next;
     });
@@ -170,7 +258,9 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
 
   const transferTomorrow = useCallback((id: string) => {
     setTodos((prev) => {
-      const next = prev.map((t) => t.id === id ? { ...t, date: tomorrowStr(), carriedOver: true, completed: false } : t);
+      const next = prev.map((t) =>
+        t.id === id ? { ...t, date: tomorrowStr(), carriedOver: true, completed: false } : t
+      );
       persist(TODOS_KEY, next);
       return next;
     });
@@ -219,11 +309,15 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
   return (
     <StudyContext.Provider
       value={{
-        sessions, allowedApps, todos, studentName, nameLoaded,
+        user, isAuthLoading,
+        loginWithGoogle, updateUserProfile, logout,
+        sessions, allowedApps, todos,
         addSession, addAllowedApp, removeAllowedApp,
         addTodo, toggleTodo, editTodo, deleteTodo, transferTomorrow,
-        setStudentName,
         todayStudyMinutes, streak, weeklyMinutes,
+        // legacy compat for home screen
+        studentName: user?.firstName ?? "",
+        nameLoaded: !isAuthLoading,
       }}
     >
       {children}
