@@ -159,13 +159,23 @@ export default function SessionScreen() {
 
         <Text style={[styles.quote, { color: colors.mutedForeground }]}>{quoteRef.current}</Text>
 
-        <Pressable
-          style={({ pressed }) => [styles.pauseBtn, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.8 : 1 }]}
-          onPress={togglePause}
-        >
-          <Feather name={running ? "pause" : "play"} size={22} color={colors.foreground} />
-          <Text style={[styles.pauseText, { color: colors.foreground }]}>{running ? "Pause" : "Resume"}</Text>
-        </Pressable>
+        <View style={styles.btnGroup}>
+          <Pressable
+            style={({ pressed }) => [styles.stopBtnFull, { backgroundColor: colors.destructive, opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
+            onPress={handleEnd}
+          >
+            <Feather name="square" size={18} color="#fff" />
+            <Text style={[styles.stopBtnText, { color: "#fff" }]}>Stop Session</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.pauseBtn, { backgroundColor: "#F5A623", opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
+            onPress={togglePause}
+          >
+            <Feather name={running ? "pause" : "play"} size={18} color="#1A1000" />
+            <Text style={[styles.pauseText, { color: "#1A1000" }]}>{running ? "Pause" : "Resume"}</Text>
+          </Pressable>
+        </View>
       </View>
 
       <View style={[styles.bottomSection, { paddingBottom: insets.bottom + 20 }]}>
@@ -209,8 +219,11 @@ const styles = StyleSheet.create({
   endBtnText: { fontSize: 14, fontWeight: "600" as const, fontFamily: "Inter_600SemiBold" },
   timerSection: { flex: 1, alignItems: "center", justifyContent: "center", gap: 24, paddingHorizontal: 20 },
   quote: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center", maxWidth: 260, lineHeight: 22, fontStyle: "italic" },
-  pauseBtn: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 28, paddingVertical: 14, borderRadius: 30, borderWidth: 1 },
-  pauseText: { fontSize: 16, fontWeight: "500" as const, fontFamily: "Inter_500Medium" },
+  btnGroup: { width: "100%", gap: 12, paddingHorizontal: 24 },
+  stopBtnFull: { borderRadius: 18, padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
+  stopBtnText: { fontSize: 16, fontWeight: "700" as const, fontFamily: "Inter_700Bold" },
+  pauseBtn: { borderRadius: 18, padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
+  pauseText: { fontSize: 16, fontWeight: "600" as const, fontFamily: "Inter_600SemiBold" },
   bottomSection: { paddingHorizontal: 20, gap: 12 },
   blockedBanner: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12, borderWidth: 1 },
   blockedText: { fontSize: 13, fontFamily: "Inter_400Regular" },
