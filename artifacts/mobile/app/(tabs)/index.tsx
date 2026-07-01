@@ -53,7 +53,9 @@ function getPersonalizedMessage(
   todayMinutes: number,
   totalSessions: number,
   todaySessionCount: number,
+  name: string,
 ): MotivationMessage {
+  const firstName = name.split(" ")[0];
   const hour = new Date().getHours();
   const day = new Date().getDay();
   const isWeekend = day === 0 || day === 6;
@@ -65,7 +67,7 @@ function getPersonalizedMessage(
 
   if (isNewUser) {
     return {
-      headline: "Welcome, future champion!",
+      headline: `Welcome, ${firstName}! 🎉`,
       sub: "Your focus journey starts today. Set up your first session below.",
       icon: "star",
       accent: "green",
@@ -74,7 +76,7 @@ function getPersonalizedMessage(
 
   if (streak >= 30) {
     return {
-      headline: `🔥 ${streak}-day streak!`,
+      headline: `🔥 ${firstName}, ${streak}-day streak!`,
       sub: "You've built an incredible habit. Keep this momentum going — you're elite.",
       icon: "zap",
       accent: "orange",
@@ -83,7 +85,7 @@ function getPersonalizedMessage(
 
   if (streak >= 7) {
     return {
-      headline: `${streak} days straight. Remarkable.`,
+      headline: `${streak} days straight, ${firstName}. Remarkable.`,
       sub: "One week of consistency is worth more than a month of motivation. Stay locked in.",
       icon: "award",
       accent: "orange",
@@ -92,7 +94,7 @@ function getPersonalizedMessage(
 
   if (studiedToday && todayMinutes >= 60) {
     return {
-      headline: `${formatMinutes(todayMinutes)} of deep focus today.`,
+      headline: `${formatMinutes(todayMinutes)} of focus today, ${firstName}!`,
       sub: "You're already winning the day. One more session puts you ahead of 99% of students.",
       icon: "trending-up",
       accent: "green",
@@ -101,7 +103,7 @@ function getPersonalizedMessage(
 
   if (studiedToday && todayMinutes > 0) {
     return {
-      headline: "Great start today!",
+      headline: `Great start, ${firstName}!`,
       sub: `${formatMinutes(todayMinutes)} down. Keep the momentum — another session and the day is yours.`,
       icon: "check-circle",
       accent: "green",
@@ -110,7 +112,7 @@ function getPersonalizedMessage(
 
   if (timeOfDay === "evening" || timeOfDay === "night") {
     return {
-      headline: "The day isn't over yet.",
+      headline: `${firstName}, the day isn't over yet.`,
       sub: "Even one 25-minute session tonight compounds into big results over time. Start now.",
       icon: "moon",
       accent: "purple",
@@ -119,7 +121,7 @@ function getPersonalizedMessage(
 
   if (timeOfDay === "morning" && streak > 0) {
     return {
-      headline: `Good morning! ${streak}-day streak to protect.`,
+      headline: `Good morning, ${firstName}! ${streak}-day streak to protect.`,
       sub: "You've built something real. Start a session before anything steals your focus.",
       icon: "sunrise",
       accent: "orange",
@@ -128,8 +130,8 @@ function getPersonalizedMessage(
 
   if (timeOfDay === "morning") {
     return {
-      headline: "Morning is your superpower.",
-      sub: "Your brain is sharpest now. Lock in before the day gets loud.",
+      headline: `Good morning, ${firstName}!`,
+      sub: "Your brain is sharpest right now. Lock in before the day gets loud.",
       icon: "sun",
       accent: "orange",
     };
@@ -137,7 +139,7 @@ function getPersonalizedMessage(
 
   if (isWeekend) {
     return {
-      headline: `${dayName} focus session?`,
+      headline: `${firstName}, ${dayName} focus session?`,
       sub: "While others rest, you're building skills they'll envy on Monday.",
       icon: "shield",
       accent: "blue",
@@ -146,7 +148,7 @@ function getPersonalizedMessage(
 
   if (day === 1) {
     return {
-      headline: "New week, new level.",
+      headline: `New week, ${firstName}. New level.`,
       sub: "Monday focus sets the tone for everything that follows. Make it count.",
       icon: "calendar",
       accent: "blue",
@@ -155,7 +157,7 @@ function getPersonalizedMessage(
 
   if (day === 5) {
     return {
-      headline: "Finish the week strong.",
+      headline: `Finish strong, ${firstName}.`,
       sub: "Friday winners push hardest when others are already switched off. Be that person.",
       icon: "flag",
       accent: "green",
@@ -164,7 +166,7 @@ function getPersonalizedMessage(
 
   if (streak === 0) {
     return {
-      headline: "Today is day one again.",
+      headline: `Today is day one again, ${firstName}.`,
       sub: "Every streak starts with a single session. This is yours. Go.",
       icon: "refresh-cw",
       accent: "blue",
@@ -205,7 +207,7 @@ const ACCENT_COLORS = {
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { todayStudyMinutes, streak, sessions } = useStudy();
+  const { todayStudyMinutes, streak, sessions, studentName } = useStudy();
   const recentSessions = sessions.slice(0, 3);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
@@ -216,8 +218,8 @@ export default function HomeScreen() {
   }, [sessions]);
 
   const motivation = useMemo(
-    () => getPersonalizedMessage(streak, todayStudyMinutes, sessions.filter((s) => s.completed).length, todaySessionCount),
-    [streak, todayStudyMinutes, sessions, todaySessionCount]
+    () => getPersonalizedMessage(streak, todayStudyMinutes, sessions.filter((s) => s.completed).length, todaySessionCount, studentName),
+    [streak, todayStudyMinutes, sessions, todaySessionCount, studentName]
   );
 
   const ac = ACCENT_COLORS[motivation.accent];
@@ -236,7 +238,7 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View>
           <Text style={[styles.greeting, { color: colors.mutedForeground }]}>Good {getTimeOfDay()},</Text>
-          <Text style={[styles.title, { color: colors.foreground }]}>StudyLock</Text>
+          <Text style={[styles.title, { color: colors.foreground }]}>{studentName.split(" ")[0] || "StudyLock"}</Text>
         </View>
         <View style={[styles.streakBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Feather name="zap" size={16} color={colors.accent} />

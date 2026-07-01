@@ -30,6 +30,8 @@ interface StudyContextType {
   sessions: StudySession[];
   allowedApps: AllowedApp[];
   todos: TodoItem[];
+  studentName: string;
+  nameLoaded: boolean;
   addSession: (session: StudySession) => void;
   addAllowedApp: (app: AllowedApp) => void;
   removeAllowedApp: (id: string) => void;
@@ -38,6 +40,7 @@ interface StudyContextType {
   editTodo: (id: string, text: string) => void;
   deleteTodo: (id: string) => void;
   transferTomorrow: (id: string) => void;
+  setStudentName: (name: string) => void;
   todayStudyMinutes: number;
   streak: number;
   weeklyMinutes: number[];
@@ -48,6 +51,7 @@ const StudyContext = createContext<StudyContextType | null>(null);
 const SESSIONS_KEY = "studylock_sessions";
 const APPS_KEY = "studylock_apps";
 const TODOS_KEY = "studylock_todos";
+const NAME_KEY = "studylock_name";
 
 const DEFAULT_APPS: AllowedApp[] = [
   { id: "1", name: "Calculator", iconName: "calculator", category: "Tools" },
@@ -73,20 +77,30 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [allowedApps, setAllowedApps] = useState<AllowedApp[]>(DEFAULT_APPS);
   const [todos, setTodos] = useState<TodoItem[]>([]);
+  const [studentName, setStudentNameState] = useState("");
+  const [nameLoaded, setNameLoaded] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        const [savedSessions, savedApps, savedTodos] = await Promise.all([
+        const [savedSessions, savedApps, savedTodos, savedName] = await Promise.all([
           AsyncStorage.getItem(SESSIONS_KEY),
           AsyncStorage.getItem(APPS_KEY),
           AsyncStorage.getItem(TODOS_KEY),
+          AsyncStorage.getItem(NAME_KEY),
         ]);
         if (savedSessions) setSessions(JSON.parse(savedSessions));
         if (savedApps) setAllowedApps(JSON.parse(savedApps));
         if (savedTodos) setTodos(JSON.parse(savedTodos));
+        if (savedName) setStudentNameState(JSON.parse(savedName));
       } catch {}
+      setNameLoaded(true);
     })();
+  }, []);
+
+  const setStudentName = useCallback((name: string) => {
+    setStudentNameState(name);
+    AsyncStorage.setItem(NAME_KEY, JSON.stringify(name)).catch(() => {});
   }, []);
 
   const addSession = useCallback((session: StudySession) => {
@@ -205,9 +219,10 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
   return (
     <StudyContext.Provider
       value={{
-        sessions, allowedApps, todos,
+        sessions, allowedApps, todos, studentName, nameLoaded,
         addSession, addAllowedApp, removeAllowedApp,
         addTodo, toggleTodo, editTodo, deleteTodo, transferTomorrow,
+        setStudentName,
         todayStudyMinutes, streak, weeklyMinutes,
       }}
     >
