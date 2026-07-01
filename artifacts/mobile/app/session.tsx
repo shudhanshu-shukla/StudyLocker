@@ -4,10 +4,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
-  AppState,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -51,32 +49,20 @@ export default function SessionScreen() {
   const [secondsLeft, setSecondsLeft] = useState(totalSeconds);
   const [running, setRunning] = useState(true);
   const [showApps, setShowApps] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const runningRef = useRef(true);
+  const secondsLeftRef = useRef(totalSeconds);
   const startTimeRef = useRef(Date.now());
   const sessionIdRef = useRef(Date.now().toString() + Math.random().toString(36).substr(2, 9));
+  const completedRef = useRef(false);
 
-  const quote = MOTIVATIONAL[Math.floor(Math.random() * MOTIVATIONAL.length)];
-  const quoteRef = useRef(quote);
+  const quoteRef = useRef(MOTIVATIONAL[Math.floor(Math.random() * MOTIVATIONAL.length)]);
 
   const progress = secondsLeft / totalSeconds;
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
-  useEffect(() => {
-    if (!running || secondsLeft <= 0) return;
-    intervalRef.current = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(intervalRef.current!);
-          handleComplete();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [running]);
-
   const handleComplete = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     const session: StudySession = {
       id: sessionIdRef.current,
@@ -89,6 +75,19 @@ export default function SessionScreen() {
     addSession(session);
     router.replace({ pathname: "/complete", params: { duration: durationParam, type: typeParam } });
   }, [addSession, durationParam, typeParam, sessionType]);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (!runningRef.current) return;
+      secondsLeftRef.current -= 1;
+      setSecondsLeft(secondsLeftRef.current);
+      if (secondsLeftRef.current <= 0) {
+        clearInterval(id);
+        handleComplete();
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [handleComplete]);
 
   function handleEnd() {
     if (Platform.OS === "web") {
@@ -106,9 +105,9 @@ export default function SessionScreen() {
   }
 
   function endEarly() {
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    completedRef.current = true;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    const elapsedMinutes = Math.round((totalSeconds - secondsLeft) / 60);
+    const elapsedMinutes = Math.round((totalSeconds - secondsLeftRef.current) / 60);
     const session: StudySession = {
       id: sessionIdRef.current,
       duration: elapsedMinutes,
@@ -123,11 +122,9 @@ export default function SessionScreen() {
 
   function togglePause() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setRunning((r) => !r);
-    if (running && intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    const next = !runningRef.current;
+    runningRef.current = next;
+    setRunning(next);
   }
 
   const labelForType = (t: SessionType) => {
