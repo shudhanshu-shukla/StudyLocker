@@ -1,10 +1,10 @@
-import { Feather } from "@expo/vector-icons";
 import * as Google from "expo-auth-session/providers/google";
 import * as Haptics from "expo-haptics";
 import * as WebBrowser from "expo-web-browser";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -75,11 +75,11 @@ export default function LoginScreen() {
     <View style={[styles.root, { backgroundColor: colors.background, paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       {/* Logo */}
       <View style={styles.center}>
-        <View style={[styles.logoBox, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "40" }]}>
-          <Feather name="shield" size={44} color={colors.primary} />
-        </View>
-        <Text style={[styles.appName, { color: colors.foreground }]}>StudyLock</Text>
-        <Text style={[styles.tagline, { color: colors.mutedForeground }]}>Focus. Study. Achieve.</Text>
+        <Image
+          source={require("../assets/logo.jpg")}
+          style={styles.logoImg}
+          resizeMode="contain"
+        />
       </View>
 
       {/* Bottom actions */}
@@ -116,14 +116,8 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, justifyContent: "space-between", paddingHorizontal: 28 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
-  logoBox: {
-    width: 88, height: 88, borderRadius: 26,
-    alignItems: "center", justifyContent: "center",
-    borderWidth: 1.5, marginBottom: 4,
-  },
-  appName: { fontSize: 32, fontWeight: "700" as const, fontFamily: "Inter_700Bold", letterSpacing: -1 },
-  tagline: { fontSize: 15, fontFamily: "Inter_400Regular" },
+  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  logoImg: { width: 260, height: 260, borderRadius: 48 },
   bottom: { paddingBottom: 12, gap: 12 },
   error: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 20 },
   googleBtn: {
