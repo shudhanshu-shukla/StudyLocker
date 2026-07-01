@@ -17,12 +17,27 @@ export interface AllowedApp {
   category: string;
 }
 
+export interface TodoItem {
+  id: string;
+  text: string;
+  completed: boolean;
+  date: string;
+  createdAt: number;
+  carriedOver: boolean;
+}
+
 interface StudyContextType {
   sessions: StudySession[];
   allowedApps: AllowedApp[];
+  todos: TodoItem[];
   addSession: (session: StudySession) => void;
   addAllowedApp: (app: AllowedApp) => void;
   removeAllowedApp: (id: string) => void;
+  addTodo: (text: string) => void;
+  toggleTodo: (id: string) => void;
+  editTodo: (id: string, text: string) => void;
+  deleteTodo: (id: string) => void;
+  transferTomorrow: (id: string) => void;
   todayStudyMinutes: number;
   streak: number;
   weeklyMinutes: number[];
@@ -32,6 +47,7 @@ const StudyContext = createContext<StudyContextType | null>(null);
 
 const SESSIONS_KEY = "studylock_sessions";
 const APPS_KEY = "studylock_apps";
+const TODOS_KEY = "studylock_todos";
 
 const DEFAULT_APPS: AllowedApp[] = [
   { id: "1", name: "Calculator", iconName: "calculator", category: "Tools" },
@@ -39,44 +55,109 @@ const DEFAULT_APPS: AllowedApp[] = [
   { id: "3", name: "Dictionary", iconName: "book-open", category: "Education" },
 ];
 
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function tomorrowStr() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+function persist(key: string, value: unknown) {
+  AsyncStorage.setItem(key, JSON.stringify(value)).catch(() => {});
+}
+
 export function StudyProvider({ children }: { children: React.ReactNode }) {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [allowedApps, setAllowedApps] = useState<AllowedApp[]>(DEFAULT_APPS);
+  const [todos, setTodos] = useState<TodoItem[]>([]);
 
   useEffect(() => {
     (async () => {
       try {
-        const [savedSessions, savedApps] = await Promise.all([
+        const [savedSessions, savedApps, savedTodos] = await Promise.all([
           AsyncStorage.getItem(SESSIONS_KEY),
           AsyncStorage.getItem(APPS_KEY),
+          AsyncStorage.getItem(TODOS_KEY),
         ]);
         if (savedSessions) setSessions(JSON.parse(savedSessions));
         if (savedApps) setAllowedApps(JSON.parse(savedApps));
+        if (savedTodos) setTodos(JSON.parse(savedTodos));
       } catch {}
     })();
   }, []);
 
-  const addSession = useCallback(async (session: StudySession) => {
+  const addSession = useCallback((session: StudySession) => {
     setSessions((prev) => {
       const next = [session, ...prev];
-      AsyncStorage.setItem(SESSIONS_KEY, JSON.stringify(next)).catch(() => {});
+      persist(SESSIONS_KEY, next);
       return next;
     });
   }, []);
 
-  const addAllowedApp = useCallback(async (app: AllowedApp) => {
+  const addAllowedApp = useCallback((app: AllowedApp) => {
     setAllowedApps((prev) => {
       if (prev.find((a) => a.id === app.id)) return prev;
       const next = [...prev, app];
-      AsyncStorage.setItem(APPS_KEY, JSON.stringify(next)).catch(() => {});
+      persist(APPS_KEY, next);
       return next;
     });
   }, []);
 
-  const removeAllowedApp = useCallback(async (id: string) => {
+  const removeAllowedApp = useCallback((id: string) => {
     setAllowedApps((prev) => {
       const next = prev.filter((a) => a.id !== id);
-      AsyncStorage.setItem(APPS_KEY, JSON.stringify(next)).catch(() => {});
+      persist(APPS_KEY, next);
+      return next;
+    });
+  }, []);
+
+  const addTodo = useCallback((text: string) => {
+    const item: TodoItem = {
+      id: Date.now().toString() + Math.random().toString(36).slice(2, 7),
+      text: text.trim(),
+      completed: false,
+      date: todayStr(),
+      createdAt: Date.now(),
+      carriedOver: false,
+    };
+    setTodos((prev) => {
+      const next = [...prev, item];
+      persist(TODOS_KEY, next);
+      return next;
+    });
+  }, []);
+
+  const toggleTodo = useCallback((id: string) => {
+    setTodos((prev) => {
+      const next = prev.map((t) => t.id === id ? { ...t, completed: !t.completed } : t);
+      persist(TODOS_KEY, next);
+      return next;
+    });
+  }, []);
+
+  const editTodo = useCallback((id: string, text: string) => {
+    setTodos((prev) => {
+      const next = prev.map((t) => t.id === id ? { ...t, text: text.trim() } : t);
+      persist(TODOS_KEY, next);
+      return next;
+    });
+  }, []);
+
+  const deleteTodo = useCallback((id: string) => {
+    setTodos((prev) => {
+      const next = prev.filter((t) => t.id !== id);
+      persist(TODOS_KEY, next);
+      return next;
+    });
+  }, []);
+
+  const transferTomorrow = useCallback((id: string) => {
+    setTodos((prev) => {
+      const next = prev.map((t) => t.id === id ? { ...t, date: tomorrowStr(), carriedOver: true, completed: false } : t);
+      persist(TODOS_KEY, next);
       return next;
     });
   }, []);
@@ -100,11 +181,8 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
       const hasSession = sessions.some(
         (s) => s.completed && s.startTime >= day.getTime() && s.startTime < dayEnd.getTime()
       );
-      if (hasSession) {
-        count++;
-      } else if (i > 0) {
-        break;
-      }
+      if (hasSession) count++;
+      else if (i > 0) break;
     }
     return count;
   }, [sessions]);
@@ -126,7 +204,12 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <StudyContext.Provider
-      value={{ sessions, allowedApps, addSession, addAllowedApp, removeAllowedApp, todayStudyMinutes, streak, weeklyMinutes }}
+      value={{
+        sessions, allowedApps, todos,
+        addSession, addAllowedApp, removeAllowedApp,
+        addTodo, toggleTodo, editTodo, deleteTodo, transferTomorrow,
+        todayStudyMinutes, streak, weeklyMinutes,
+      }}
     >
       {children}
     </StudyContext.Provider>
