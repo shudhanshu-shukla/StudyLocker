@@ -176,10 +176,17 @@ export default function SessionScreen() {
       </View>
 
       <View style={[styles.bottomSection, { paddingBottom: insets.bottom + 20 }]}>
-        <View style={[styles.blockedBanner, { backgroundColor: colors.destructive + "18", borderColor: colors.destructive + "44" }]}>
-          <Feather name="bell-off" size={14} color={colors.destructive} />
-          <Text style={[styles.blockedText, { color: colors.destructive }]}>Notifications silenced · Other apps blocked</Text>
-        </View>
+        {running ? (
+          <View style={[styles.blockedBanner, { backgroundColor: colors.destructive + "18", borderColor: colors.destructive + "44" }]}>
+            <Feather name="bell-off" size={14} color={colors.destructive} />
+            <Text style={[styles.blockedText, { color: colors.destructive }]}>Notifications silenced · Other apps blocked</Text>
+          </View>
+        ) : (
+          <View style={[styles.blockedBanner, { backgroundColor: "#F5A62318", borderColor: "#F5A62344" }]}>
+            <Feather name="unlock" size={14} color="#F5A623" />
+            <Text style={[styles.blockedText, { color: "#F5A623" }]}>Paused — All apps are now accessible</Text>
+          </View>
+        )}
 
         <Pressable
           style={({ pressed }) => [styles.appsToggle, { opacity: pressed ? 0.7 : 1 }]}
