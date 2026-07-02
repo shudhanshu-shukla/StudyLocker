@@ -43,6 +43,7 @@ function RootLayoutNav() {
       <Stack.Screen name="setup" options={{ presentation: "card", animation: "slide_from_right" }} />
       <Stack.Screen name="session" options={{ presentation: "fullScreenModal", animation: "fade", gestureEnabled: false }} />
       <Stack.Screen name="complete" options={{ presentation: "fullScreenModal", animation: "fade", gestureEnabled: false }} />
+      <Stack.Screen name="welcome" options={{ animation: "fade", gestureEnabled: false }} />
     </Stack>
   );
 }

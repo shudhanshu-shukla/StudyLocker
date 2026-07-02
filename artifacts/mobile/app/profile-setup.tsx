@@ -93,7 +93,7 @@ export default function ProfileSetupScreen() {
         className: finalClass || undefined,
         setupComplete: true,
       });
-      router.replace("/");
+      router.replace("/welcome");
     } catch {
       setError("Could not save profile. Please try again.");
       setSaving(false);
