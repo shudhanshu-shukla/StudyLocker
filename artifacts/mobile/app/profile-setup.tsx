@@ -39,7 +39,9 @@ export default function ProfileSetupScreen() {
   const needsBoard = selectedCategory?.id === "school";
 
   function goBack() {
-    if (step === "exam") setStep("category");
+    if (step === "name") router.replace("/login");
+    else if (step === "category") setStep("name");
+    else if (step === "exam") setStep("category");
     else if (step === "class_board") setStep("exam");
   }
 
@@ -106,11 +108,9 @@ export default function ProfileSetupScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={[styles.header, { paddingTop: topPad + 16, borderBottomColor: colors.border }]}>
         <View style={styles.headerRow}>
-          {step !== "name" ? (
-            <Pressable onPress={goBack} style={[styles.backBtn, { backgroundColor: colors.card }]}>
-              <Feather name="arrow-left" size={18} color={colors.foreground} />
-            </Pressable>
-          ) : <View style={{ width: 40 }} />}
+          <Pressable onPress={goBack} style={[styles.backBtn, { backgroundColor: colors.card }]}>
+            <Feather name="arrow-left" size={18} color={colors.foreground} />
+          </Pressable>
           <Text style={[styles.stepLabel, { color: colors.mutedForeground }]}>
             Step {stepIdx + 1} of {needsClass || needsBoard ? 4 : 3}
           </Text>
