@@ -58,6 +58,7 @@ interface StudyContextType {
   todayStudyMinutes: number;
   streak: number;
   weeklyMinutes: number[];
+  studyCoins: number;
   // legacy compat
   studentName: string;
   nameLoaded: boolean;
@@ -259,6 +260,12 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
     return result;
   }, [sessions]);
 
+  const studyCoins = React.useMemo(() => {
+    return Math.floor(
+      sessions.filter((s) => s.completed).reduce((sum, s) => sum + s.duration, 0)
+    );
+  }, [sessions]);
+
   return (
     <StudyContext.Provider
       value={{
@@ -267,7 +274,7 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
         sessions, allowedApps, todos,
         addSession, addAllowedApp, removeAllowedApp,
         addTodo, toggleTodo, editTodo, deleteTodo, transferTomorrow,
-        todayStudyMinutes, streak, weeklyMinutes,
+        todayStudyMinutes, streak, weeklyMinutes, studyCoins,
         // legacy compat for home screen
         studentName: user?.firstName ?? "",
         nameLoaded: !isAuthLoading,

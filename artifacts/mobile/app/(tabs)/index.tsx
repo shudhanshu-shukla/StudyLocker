@@ -207,7 +207,7 @@ const ACCENT_COLORS = {
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { todayStudyMinutes, streak, sessions, studentName } = useStudy();
+  const { todayStudyMinutes, streak, sessions, studentName, studyCoins } = useStudy();
   const recentSessions = sessions.slice(0, 3);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
@@ -240,9 +240,15 @@ export default function HomeScreen() {
           <Text style={[styles.greeting, { color: colors.mutedForeground }]}>Good {getTimeOfDay()},</Text>
           <Text style={[styles.title, { color: colors.foreground }]}>{studentName.split(" ")[0] || "StudyLock"}</Text>
         </View>
-        <View style={[styles.streakBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Feather name="zap" size={16} color={colors.accent} />
-          <Text style={[styles.streakText, { color: colors.foreground }]}>{streak}</Text>
+        <View style={styles.badgesRow}>
+          <View style={[styles.badge, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Feather name="zap" size={14} color={colors.accent} />
+            <Text style={[styles.badgeText, { color: colors.foreground }]}>{streak}</Text>
+          </View>
+          <View style={[styles.badge, { backgroundColor: "#F5A62318", borderColor: "#F5A62344" }]}>
+            <Text style={styles.coinBadgeEmoji}>🪙</Text>
+            <Text style={[styles.badgeText, { color: "#F5A623" }]}>{studyCoins}</Text>
+          </View>
         </View>
       </View>
 
@@ -267,10 +273,10 @@ export default function HomeScreen() {
           <Text style={[styles.statValue, { color: colors.foreground }]}>{streak}</Text>
           <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Day streak</Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Feather name="check-circle" size={20} color={colors.primary} />
-          <Text style={[styles.statValue, { color: colors.foreground }]}>{sessions.filter((s) => s.completed).length}</Text>
-          <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Sessions</Text>
+        <View style={[styles.statCard, { backgroundColor: "#F5A62318", borderColor: "#F5A62344" }]}>
+          <Text style={{ fontSize: 20 }}>🪙</Text>
+          <Text style={[styles.statValue, { color: "#F5A623" }]}>{studyCoins}</Text>
+          <Text style={[styles.statLabel, { color: "#F5A62399" }]}>Coins</Text>
         </View>
       </View>
 
@@ -315,8 +321,10 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 },
   greeting: { fontSize: 14, fontFamily: "Inter_400Regular" },
   title: { fontSize: 28, fontWeight: "700" as const, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
-  streakBadge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
-  streakText: { fontSize: 15, fontWeight: "600" as const, fontFamily: "Inter_600SemiBold" },
+  badgesRow: { flexDirection: "row", gap: 8 },
+  badge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 20, borderWidth: 1 },
+  badgeText: { fontSize: 14, fontWeight: "600" as const, fontFamily: "Inter_600SemiBold" },
+  coinBadgeEmoji: { fontSize: 13 },
   motivationCard: { borderRadius: 18, padding: 16, marginBottom: 20, borderWidth: 1.5, flexDirection: "row", gap: 14, alignItems: "flex-start" },
   motivationIconBox: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 },
   motivationHeadline: { fontSize: 15, fontWeight: "700" as const, fontFamily: "Inter_700Bold", lineHeight: 22 },
