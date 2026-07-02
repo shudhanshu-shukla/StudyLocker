@@ -1,4 +1,3 @@
-import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -18,6 +17,12 @@ import { useStudy } from "@/context/StudyContext";
 import { useColors } from "@/hooks/useColors";
 
 type Step = "name" | "category" | "exam" | "class_board";
+
+const CAT_EMOJI: Record<string, string> = {
+  school: "📚", engineering: "⚙️", medical: "🏥", civil_services: "🏛️",
+  ssc_railway: "🚂", banking: "🏦", management: "💼", law: "⚖️",
+  design: "🎨", postgrad: "🎓", ca_finance: "📈", cuet: "🌐", other: "📖",
+};
 
 export default function ProfileSetupScreen() {
   const colors = useColors();
@@ -168,8 +173,7 @@ export default function ProfileSetupScreen() {
             style={({ pressed }) => [styles.nextBtn, { backgroundColor: colors.primary, opacity: pressed ? 0.8 : 1 }]}
             onPress={handleNameNext}
           >
-            <Text style={styles.nextBtnText}>Continue</Text>
-            <Feather name="arrow-right" size={18} color="#fff" />
+            <Text style={styles.nextBtnText}>Continue →</Text>
           </Pressable>
         </View>
       )}
@@ -189,10 +193,10 @@ export default function ProfileSetupScreen() {
               onPress={() => handleCategorySelect(cat)}
             >
               <View style={[styles.catIcon, { backgroundColor: colors.primary + "22" }]}>
-                <Feather name={cat.icon as any} size={20} color={colors.primary} />
+                <Text style={styles.catEmoji}>{CAT_EMOJI[cat.id] ?? "📖"}</Text>
               </View>
               <Text style={[styles.catLabel, { color: colors.foreground }]}>{cat.label}</Text>
-              <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+              <Text style={[styles.chevron, { color: colors.mutedForeground }]}>›</Text>
             </Pressable>
           ))}
         </ScrollView>
@@ -213,7 +217,7 @@ export default function ProfileSetupScreen() {
               onPress={() => handleExamSelect(exam)}
             >
               <Text style={[styles.examName, { color: colors.foreground }]}>{exam.name}</Text>
-              <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+              <Text style={[styles.chevron, { color: colors.mutedForeground }]}>›</Text>
             </Pressable>
           ))}
         </ScrollView>
@@ -257,7 +261,7 @@ export default function ProfileSetupScreen() {
                     ]}
                     onPress={() => { setSelectedBoard(b); Haptics.selectionAsync(); }}
                   >
-                    {selectedBoard === b && <Feather name="check-circle" size={16} color={colors.primary} />}
+                    {selectedBoard === b && <Text style={[styles.checkMark, { color: colors.primary }]}>✓</Text>}
                     <Text style={[styles.boardText, { color: colors.foreground }]}>{b}</Text>
                   </Pressable>
                 ))}
@@ -298,7 +302,10 @@ const styles = StyleSheet.create({
   nextBtnText: { fontSize: 16, fontWeight: "600" as const, fontFamily: "Inter_600SemiBold", color: "#fff" },
   catCard: { flexDirection: "row", alignItems: "center", gap: 14, borderRadius: 16, borderWidth: 1, padding: 16 },
   catIcon: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  catEmoji: { fontSize: 22 },
   catLabel: { flex: 1, fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  chevron: { fontSize: 22, fontWeight: "300" as const },
+  checkMark: { fontSize: 15, fontWeight: "700" as const },
   examCard: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderRadius: 14, borderWidth: 1, paddingHorizontal: 18, paddingVertical: 16 },
   examName: { flex: 1, fontSize: 15, fontFamily: "Inter_400Regular" },
   sectionTitle: { fontSize: 17, fontWeight: "600" as const, fontFamily: "Inter_600SemiBold" },
