@@ -27,11 +27,8 @@ export interface TodoItem {
 }
 
 export interface AppUser {
-  googleId: string;
-  email: string;
   firstName: string;
   lastName: string;
-  avatarUrl: string;
   examCategoryId: string;
   examCategoryLabel: string;
   examId: string;
@@ -41,18 +38,10 @@ export interface AppUser {
   setupComplete: boolean;
 }
 
-export interface GoogleProfile {
-  googleId: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  avatarUrl: string;
-}
-
 interface StudyContextType {
   user: AppUser | null;
   isAuthLoading: boolean;
-  loginWithGoogle: (profile: GoogleProfile) => Promise<void>;
+  loginWithName: (firstName: string, lastName: string) => void;
   updateUserProfile: (profile: Partial<AppUser>) => Promise<void>;
   logout: () => void;
   sessions: StudySession[];
@@ -101,37 +90,6 @@ function persist(key: string, value: unknown) {
   AsyncStorage.setItem(key, JSON.stringify(value)).catch(() => {});
 }
 
-async function syncUserToBackend(user: AppUser): Promise<void> {
-  try {
-    const base = process.env.EXPO_PUBLIC_API_URL ?? "";
-    await fetch(`${base}/api/users/upsert`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        googleId: user.googleId,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        avatarUrl: user.avatarUrl,
-      }),
-    });
-  } catch {
-    // backend unavailable — local only
-  }
-}
-
-async function updateProfileOnBackend(googleId: string, profile: Partial<AppUser>): Promise<void> {
-  try {
-    const base = process.env.EXPO_PUBLIC_API_URL ?? "";
-    await fetch(`${base}/api/users/${googleId}/profile`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(profile),
-    });
-  } catch {
-    // backend unavailable — local only
-  }
-}
 
 export function StudyProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
@@ -158,9 +116,10 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
-  const loginWithGoogle = useCallback(async (profile: GoogleProfile) => {
+  const loginWithName = useCallback((firstName: string, lastName: string) => {
     const newUser: AppUser = {
-      ...profile,
+      firstName,
+      lastName,
       examCategoryId: "",
       examCategoryLabel: "",
       examId: "",
@@ -169,7 +128,6 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
     };
     setUser(newUser);
     persist(USER_KEY, newUser);
-    await syncUserToBackend(newUser);
   }, []);
 
   const updateUserProfile = useCallback(async (profile: Partial<AppUser>) => {
@@ -179,11 +137,6 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
       persist(USER_KEY, next);
       return next;
     });
-    const currentUser = await AsyncStorage.getItem(USER_KEY);
-    if (currentUser) {
-      const parsed: AppUser = JSON.parse(currentUser);
-      await updateProfileOnBackend(parsed.googleId, profile);
-    }
   }, []);
 
   const logout = useCallback(() => {
@@ -310,7 +263,7 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
     <StudyContext.Provider
       value={{
         user, isAuthLoading,
-        loginWithGoogle, updateUserProfile, logout,
+        loginWithName, updateUserProfile, logout,
         sessions, allowedApps, todos,
         addSession, addAllowedApp, removeAllowedApp,
         addTodo, toggleTodo, editTodo, deleteTodo, transferTomorrow,

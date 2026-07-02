@@ -1,13 +1,12 @@
-import * as Google from "expo-auth-session/providers/google";
 import * as Haptics from "expo-haptics";
-import * as WebBrowser from "expo-web-browser";
-import React, { useEffect, useState } from "react";
+import { router } from "expo-router";
+import React, { useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Image,
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,61 +14,28 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStudy } from "@/context/StudyContext";
 import { useColors } from "@/hooks/useColors";
 
-WebBrowser.maybeCompleteAuthSession();
-
-const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ?? "";
-const IS_CONFIGURED = !!GOOGLE_CLIENT_ID;
-
 export default function LoginScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { loginWithGoogle } = useStudy();
-  const [loading, setLoading] = useState(false);
+  const { loginWithName } = useStudy();
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [error, setError] = useState("");
+  const lastNameRef = useRef<TextInput>(null);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: GOOGLE_CLIENT_ID || "not-configured",
-  });
-
-  useEffect(() => {
-    if (response?.type === "success" && response.authentication?.accessToken) {
-      handleGoogleSuccess(response.authentication.accessToken);
-    } else if (response?.type === "error") {
-      setError("Sign-in failed. Please try again.");
-      setLoading(false);
-    }
-  }, [response]);
-
-  async function handleGoogleSuccess(accessToken: string) {
-    try {
-      const profileRes = await fetch("https://www.googleapis.com/userinfo/v2/me", {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      const profile = await profileRes.json();
-      await loginWithGoogle({
-        googleId: profile.id,
-        email: profile.email,
-        firstName: profile.given_name ?? profile.name ?? "",
-        lastName: profile.family_name ?? "",
-        avatarUrl: profile.picture ?? "",
-      });
-    } catch {
-      setError("Could not fetch your profile. Try again.");
-      setLoading(false);
-    }
-  }
-
-  async function handleSignIn() {
-    if (!IS_CONFIGURED) {
-      setError("Google Sign-In is not yet configured.\nAdd EXPO_PUBLIC_GOOGLE_CLIENT_ID to secrets.");
+  function handleStart() {
+    if (!firstName.trim()) {
+      setError("Please enter your first name.");
       return;
     }
     setError("");
-    setLoading(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    await promptAsync();
-    if (response?.type !== "success") setLoading(false);
+    loginWithName(firstName.trim(), lastName.trim());
+    router.replace("/profile-setup");
   }
+
+  const canSubmit = firstName.trim().length > 0;
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background, paddingTop: insets.top, paddingBottom: insets.bottom }]}>
@@ -82,50 +48,67 @@ export default function LoginScreen() {
         />
       </View>
 
-      {/* Bottom actions */}
-      <View style={styles.bottom}>
+      {/* Form */}
+      <View style={[styles.bottom, { paddingBottom: Math.max(insets.bottom, 16) + 16 }]}>
+        <Text style={[styles.heading, { color: colors.foreground }]}>What's your name?</Text>
+
         {error ? (
           <Text style={[styles.error, { color: colors.destructive }]}>{error}</Text>
         ) : null}
 
+        <View style={styles.inputs}>
+          <TextInput
+            style={[styles.input, { backgroundColor: colors.card, color: colors.foreground, borderColor: colors.border }]}
+            placeholder="First name"
+            placeholderTextColor={colors.mutedForeground}
+            value={firstName}
+            onChangeText={(t) => { setFirstName(t); if (error) setError(""); }}
+            autoFocus
+            autoCorrect={false}
+            returnKeyType="next"
+            onSubmitEditing={() => lastNameRef.current?.focus()}
+          />
+          <TextInput
+            ref={lastNameRef}
+            style={[styles.input, { backgroundColor: colors.card, color: colors.foreground, borderColor: colors.border }]}
+            placeholder="Last name (optional)"
+            placeholderTextColor={colors.mutedForeground}
+            value={lastName}
+            onChangeText={setLastName}
+            autoCorrect={false}
+            returnKeyType="done"
+            onSubmitEditing={handleStart}
+          />
+        </View>
+
         <Pressable
           style={({ pressed }) => [
-            styles.googleBtn,
-            { opacity: pressed || loading ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
+            styles.startBtn,
+            { backgroundColor: colors.primary, opacity: !canSubmit ? 0.4 : pressed ? 0.85 : 1, transform: [{ scale: pressed && canSubmit ? 0.97 : 1 }] },
           ]}
-          onPress={handleSignIn}
-          disabled={loading || !request}
+          onPress={handleStart}
+          disabled={!canSubmit}
         >
-          {loading ? (
-            <ActivityIndicator color="#333" size="small" />
-          ) : (
-            <>
-              <Text style={styles.gLetter}>G</Text>
-              <Text style={styles.googleBtnText}>Continue with Google</Text>
-            </>
-          )}
+          <Text style={styles.startBtnText}>Get Started →</Text>
         </Pressable>
-
-        <Text style={[styles.privacy, { color: colors.mutedForeground }]}>
-          Your study data is saved to your account
-        </Text>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, justifyContent: "space-between", paddingHorizontal: 28 },
+  root: { flex: 1, justifyContent: "space-between", paddingHorizontal: 24 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  logoImg: { width: 260, height: 260, borderRadius: 48 },
-  bottom: { paddingBottom: 12, gap: 12 },
-  error: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 20 },
-  googleBtn: {
-    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
-    backgroundColor: "#ffffff", borderRadius: 16, paddingVertical: 15,
-    shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: 2,
+  logoImg: { width: 240, height: 240, borderRadius: 44 },
+  bottom: { gap: 14 },
+  heading: { fontSize: 22, fontWeight: "700" as const, fontFamily: "Inter_700Bold", letterSpacing: -0.4 },
+  error: { fontSize: 13, fontFamily: "Inter_400Regular" },
+  inputs: { gap: 10 },
+  input: {
+    borderRadius: 14, borderWidth: 1,
+    paddingHorizontal: 16, paddingVertical: 14,
+    fontSize: 16, fontFamily: "Inter_400Regular",
   },
-  gLetter: { fontSize: 18, fontWeight: "700" as const, color: "#4285F4", fontFamily: "Inter_700Bold" },
-  googleBtnText: { fontSize: 16, fontWeight: "600" as const, color: "#222", fontFamily: "Inter_600SemiBold" },
-  privacy: { fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "center" },
+  startBtn: { borderRadius: 16, paddingVertical: 15, alignItems: "center", justifyContent: "center" },
+  startBtnText: { fontSize: 16, fontWeight: "600" as const, fontFamily: "Inter_600SemiBold", color: "#fff" },
 });
