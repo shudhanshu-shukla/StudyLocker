@@ -108,8 +108,8 @@ export default function ProfileSetupScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={[styles.header, { paddingTop: topPad + 16, borderBottomColor: colors.border }]}>
         <View style={styles.headerRow}>
-          <Pressable onPress={goBack} style={[styles.backBtn, { backgroundColor: colors.card }]}>
-            <Feather name="arrow-left" size={18} color={colors.foreground} />
+          <Pressable onPress={goBack} style={styles.backBtn}>
+            <Feather name="arrow-left" size={20} color="#fff" />
           </Pressable>
           <Text style={[styles.stepLabel, { color: colors.mutedForeground }]}>
             Step {stepIdx + 1} of {needsClass || needsBoard ? 4 : 3}
@@ -285,7 +285,7 @@ export default function ProfileSetupScreen() {
 const styles = StyleSheet.create({
   header: { paddingHorizontal: 20, paddingBottom: 16, borderBottomWidth: StyleSheet.hairlineWidth, gap: 8 },
   headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  backBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  backBtn: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: "#2563EB" },
   stepLabel: { fontSize: 13, fontFamily: "Inter_400Regular" },
   title: { fontSize: 24, fontWeight: "700" as const, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
   progress: { flexDirection: "row", gap: 6, marginTop: 4 },
