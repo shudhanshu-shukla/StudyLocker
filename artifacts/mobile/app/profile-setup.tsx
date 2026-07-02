@@ -109,7 +109,7 @@ export default function ProfileSetupScreen() {
       <View style={[styles.header, { paddingTop: topPad + 16, borderBottomColor: colors.border }]}>
         <View style={styles.headerRow}>
           <Pressable onPress={goBack} style={styles.backBtn}>
-            <Feather name="arrow-left" size={20} color="#fff" />
+            <Text style={styles.backArrow}>←</Text>
           </Pressable>
           <Text style={[styles.stepLabel, { color: colors.mutedForeground }]}>
             Step {stepIdx + 1} of {needsClass || needsBoard ? 4 : 3}
@@ -286,6 +286,7 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 20, paddingBottom: 16, borderBottomWidth: StyleSheet.hairlineWidth, gap: 8 },
   headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   backBtn: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: "#2563EB" },
+  backArrow: { fontSize: 22, color: "#fff", lineHeight: 26, fontWeight: "600" as const },
   stepLabel: { fontSize: 13, fontFamily: "Inter_400Regular" },
   title: { fontSize: 24, fontWeight: "700" as const, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
   progress: { flexDirection: "row", gap: 6, marginTop: 4 },
