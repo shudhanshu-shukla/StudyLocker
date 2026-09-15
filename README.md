@@ -1,60 +1,58 @@
 # 📚 StudyLocker
 
-> Stay Focused. Block Distractions. Achieve More.
+> **Stay Focused. Block Distractions. Achieve More.**
 
-StudyLocker is a productivity app designed for students. It helps users stay focused by blocking distracting apps during study sessions and building better study habits.
+StudyLocker is a student productivity application designed to help learners stay focused during study sessions by reducing digital distractions.
 
----
+## 🎯 Why StudyLocker?
+
+Studying in a world full of digital distractions can make it difficult to maintain concentration.
+
+StudyLocker is designed around a simple idea:
+
+**Create a focused environment where students can study with fewer distractions.**
 
 ## ✨ Features
 
-- 🔒 Block distracting apps while studying
-- ⏳ Focus mode with study timer
-- 📊 Track study sessions
-- 🎯 Goal-based productivity
-- 👤 User authentication
-- ⚡ Clean and modern UI
+- 🔒 Distraction-blocking study experience
+- 📚 Student-focused productivity tools
+- 👤 User authentication and profile support
+- ⚙️ Settings and account controls
 - 📱 Mobile-first experience
+- 🎯 Designed around focused study sessions
 
----
+## 🛠️ Technology
 
-## 🛠️ Tech Stack
-
-- React Native
-- Expo
+- React
 - TypeScript
-- Firebase
-- GitHub
+- JavaScript
+- Modern web/mobile technologies
+- Git & GitHub
 
----
+## 🚀 Project Status
 
-## 🚀 Future Features
+**🟡 Active Development**
 
-- AI Study Assistant
-- Study Statistics Dashboard
-- Leaderboards
-- Daily Challenges
-- Smart Notifications
-- Cloud Backup
+StudyLocker is an evolving project. New features and improvements are being explored and developed.
 
----
-
-## 📸 Screenshots
-
-Screenshots will be added soon.
-
----
-
-## 👨‍💻 Developer
+## 👨‍💻 Creator
 
 **Shudhanshu Shukla**
 
-Class 11 Science Student from Bihar, India
+Ceo & Founder & Lead Developer of StudyLocker.from bettiah, bihar, india
 
-Passionate about Software Development, AI, and building tools that help students succeed.
+I built StudyLocker as a project focused on helping students create a more productive study environment.
+
+## 🌐 Links
+
+- 🌐 **Portfolio:** https://shudhanshu-shukla.github.io/
+- 💻 **GitHub:** https://github.com/shudhanshu-shukla
+- 💼 **LinkedIn:** https://www.linkedin.com/in/sudhanshushuklacodes/
+
+## 📌 Vision
+
+StudyLocker aims to make focused learning easier by combining productivity, technology, and a distraction-aware study experience.
 
 ---
 
-## ⭐ Support
-
-If you like this project, don't forget to ⭐ Star the repository.
+© 2026 Shudhanshu Shukla
