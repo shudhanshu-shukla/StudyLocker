@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="artifacts/mobile/assets/studylocker-new.png" alt="StudyLocker logo" width="220" />
+</p>
+
 # 📚 StudyLocker
 
 > **Stay Focused. Block Distractions. Achieve More.**

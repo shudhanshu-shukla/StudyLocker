@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
+  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -97,7 +98,14 @@ export default function SettingsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={[styles.header, { paddingTop: topPad + 20, borderBottomColor: colors.border }]}>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Settings</Text>
+        <View style={styles.headerRow}>
+          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Settings</Text>
+          <Image
+            source={require("../../assets/studylocker-new.png")}
+            style={styles.brandLogo}
+            resizeMode="contain"
+          />
+        </View>
       </View>
 
       <ScrollView
@@ -185,6 +193,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   headerTitle: { fontSize: 28, fontWeight: "700" as const, letterSpacing: -0.5 },
+  headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  brandLogo: { width: 40, height: 40, borderRadius: 11 },
   profileCard: {
     flexDirection: "row",
     alignItems: "center",

@@ -5,6 +5,7 @@ import {
   Animated,
   Dimensions,
   Easing,
+  Image,
   Platform,
   Pressable,
   StyleSheet,
@@ -72,7 +73,7 @@ export default function WelcomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
 
-  const msg = (user?.examId && EXAM_MESSAGES[user.examId]) ?? DEFAULT_MSG;
+  const msg = (user?.examId ? EXAM_MESSAGES[user.examId] : undefined) ?? DEFAULT_MSG;
 
   const scale = useRef(new Animated.Value(0.4)).current;
   const fade = useRef(new Animated.Value(0)).current;
@@ -105,8 +106,12 @@ export default function WelcomeScreen() {
 
       <View style={[styles.container, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 32 }]}>
         <Animated.View style={{ opacity: fade, transform: [{ scale }], alignItems: "center" }}>
-          <View style={styles.emojiCircle}>
-            <Text style={styles.emoji}>{msg.emoji}</Text>
+          <View style={styles.logoCircle}>
+            <Image
+              source={require("../assets/studylocker-new.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </View>
           <View style={styles.tagPill}>
             <Text style={styles.tagText}>{msg.tag}</Text>
@@ -161,18 +166,19 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 28,
   },
-  emojiCircle: {
+  logoCircle: {
     width: 110,
     height: 110,
-    borderRadius: 55,
+    borderRadius: 28,
     backgroundColor: "rgba(76,175,121,0.15)",
     borderWidth: 2,
     borderColor: "rgba(76,175,121,0.4)",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 14,
+    overflow: "hidden",
   },
-  emoji: { fontSize: 52 },
+  logo: { width: "100%", height: "100%" },
   tagPill: {
     backgroundColor: "rgba(76,175,121,0.18)",
     borderRadius: 20,

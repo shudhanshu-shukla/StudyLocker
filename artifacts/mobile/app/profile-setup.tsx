@@ -2,6 +2,7 @@ import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -119,7 +120,11 @@ export default function ProfileSetupScreen() {
           <Text style={[styles.stepLabel, { color: colors.mutedForeground }]}>
             Step {stepIdx + 1} of {needsClass || needsBoard ? 4 : 3}
           </Text>
-          <View style={{ width: 40 }} />
+          <Image
+            source={require("../assets/studylocker-new.png")}
+            style={styles.brandLogo}
+            resizeMode="contain"
+          />
         </View>
         <Text style={[styles.title, { color: colors.foreground }]}>{STEP_LABELS[step]}</Text>
         <View style={styles.progress}>
@@ -291,6 +296,7 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   backBtn: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: "#2563EB" },
   backArrow: { fontSize: 22, color: "#fff", lineHeight: 26, fontWeight: "600" as const },
+  brandLogo: { width: 40, height: 40, borderRadius: 11 },
   stepLabel: { fontSize: 13, fontFamily: "Inter_400Regular" },
   title: { fontSize: 24, fontWeight: "700" as const, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
   progress: { flexDirection: "row", gap: 6, marginTop: 4 },

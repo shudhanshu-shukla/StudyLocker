@@ -58,7 +58,7 @@ export default function LoginScreen() {
         {/* Logo */}
         <View style={styles.logoWrap}>
           <Image
-            source={require("../assets/logo.jpg")}
+            source={require("../assets/studylocker-new.png")}
             style={styles.logoImg}
             resizeMode="contain"
           />
